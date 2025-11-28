@@ -16,9 +16,10 @@ jobs:
   build:
     runs-on: ubuntu-latest
     container: ghcr.io/jsantorek/gw2-addon-builder:latest
+    permissions:
+      contents: write
     steps:
-      - name: Checkout sources
-        uses: actions/checkout@v6
+      - uses: actions/checkout@v6
         with:
           repository: ${{ env.SOURCE_REPO }}
           token: ${{ secrets.GHCR_ACCESS_TOKEN }}
@@ -38,17 +39,14 @@ jobs:
           --profile:host windows-dynamic
           --profile:build default
           --conf tools.cmake.cmaketoolchain:extra_variables*='{
-          "ADDON_UPDATE_LINK": "https://github.com/${{ github.repository }}",
+          "ADDON_UPDATE_LINK": "${{ github.server_url }}/${{ github.repository }}",
           "ADDON_VERSION": "${{ github.event.inputs.tag }}"
           }'
 
-      - name: Add empty commit
-        uses: velocibear/create-empty-commit@v1.0.0
-        with:
-          token: ${{ secrets.GHCR_ACCESS_TOKEN }}
-          email: github-actions[bot]@users.noreply.github.com
-          name: GitHub Action
-          message: Empty commit needed for new non-mutable release
+      - uses: bcanseco/github-contribution-graph-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GIT_EMAIL: github-actions[bot]@users.noreply.github.com
 
       - name: Draft GitHub Release
         uses: softprops/action-gh-release@v2
