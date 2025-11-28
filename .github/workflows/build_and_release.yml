@@ -48,7 +48,7 @@ jobs:
           token: ${{ secrets.GHCR_ACCESS_TOKEN }}
           email: github-actions[bot]@users.noreply.github.com
           name: GitHub Action
-         message: Empty commit needed for new non-mutable release
+          message: Empty commit needed for new non-mutable release
 
       - name: Draft GitHub Release
         uses: softprops/action-gh-release@v2
