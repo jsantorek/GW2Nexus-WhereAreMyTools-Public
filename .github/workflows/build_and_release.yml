@@ -25,13 +25,15 @@ jobs:
           ref: main
           submodules: recursive
 
-      - name: Build with conan
+      - name: Conan install dependencies
         run: >
           conan install .
           --build missing
           --profile:host windows-dynamic
           --profile:build default
-          &&
+      
+      - name: Conan build addon
+        run: >
           conan build .
           --profile:host windows-dynamic
           --profile:build default
@@ -39,6 +41,14 @@ jobs:
           "ADDON_UPDATE_LINK": "https://github.com/${{ github.repository }}",
           "ADDON_VERSION": "${{ github.event.inputs.tag }}"
           }'
+
+      - name: Add empty commit
+        uses: velocibear/create-empty-commit@v1.0.0
+        with:
+          token: ${{ secrets.GHCR_ACCESS_TOKEN }}
+          email: github-actions[bot]@users.noreply.github.com
+          name: GitHub Action
+         message: Empty commit needed for new non-mutable release
 
       - name: Draft GitHub Release
         uses: softprops/action-gh-release@v2
