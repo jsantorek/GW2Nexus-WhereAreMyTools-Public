@@ -31,14 +31,14 @@ jobs:
           --build missing
           --profile:host windows-dynamic
           --profile:build default
-          --conf tools.cmake.cmaketoolchain:extra_variables='{
-          "ADDON_UPDATE_LINK": "https://github.com/${{ github.repository }}",
-          "ADDON_VERSION": "${{ github.event.inputs.tag }}"
-          }'
           &&
           conan build .
           --profile:host windows-dynamic
           --profile:build default
+          --conf tools.cmake.cmaketoolchain:extra_variables*='{
+          "ADDON_UPDATE_LINK": "https://github.com/${{ github.repository }}",
+          "ADDON_VERSION": "${{ github.event.inputs.tag }}"
+          }'
 
       - name: Draft GitHub Release
         uses: softprops/action-gh-release@v2
