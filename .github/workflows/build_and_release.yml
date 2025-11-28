@@ -49,7 +49,7 @@ jobs:
           prerelease: false
           fail_on_unmatched_files: true
           tag_name: ${{ github.event.inputs.tag }}
-          files: build/**.dll
+          files: build/**/*.dll
 
       - name: Publish GitHub Release
         uses: softprops/action-gh-release@v2
