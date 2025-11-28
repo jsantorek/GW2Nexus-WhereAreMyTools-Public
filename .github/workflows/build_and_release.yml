@@ -1,0 +1,62 @@
+name: Manual Conan Build & Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Tag name for the release (e.g. v1.2.3, 1.4.12.912)"
+        required: true
+        type: string
+
+env:
+  SOURCE_REPO: "TyrianDeveloperCollective/GW2-WhereAreMyTools"
+  CONAN_HOME: /root/.conan2
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container: ghcr.io/jsantorek/gw2-addon-builder:latest
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v6
+        with:
+          repository: ${{ env.SOURCE_REPO }}
+          token: ${{ secrets.GHCR_ACCESS_TOKEN }}
+          ref: main
+          submodules: recursive
+
+      - name: Build with conan
+        run: >
+          conan install .
+          --build missing
+          --profile:host windows-dynamic
+          --profile:build default
+          --conf tools.cmake.cmaketoolchain:extra_variables='{
+          "ADDON_UPDATE_LINK": "https://github.com/${{ github.repository }}",
+          "ADDON_VERSION": "${{ github.event.inputs.tag }}"
+          }'
+          &&
+          conan build .
+          --profile:host windows-dynamic
+          --profile:build default
+
+      - name: Draft GitHub Release
+        uses: softprops/action-gh-release@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GHCR_ACCESS_TOKEN }}
+        with:
+          draft: true
+          prerelease: false
+          fail_on_unmatched_files: true
+          tag_name: ${{ github.event.inputs.tag }}
+          files: build/**.dll
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GHCR_ACCESS_TOKEN }}
+        with:
+          make_latest: true
+          draft: false
+          prerelease: false
+          tag_name: ${{ github.event.inputs.tag }}
