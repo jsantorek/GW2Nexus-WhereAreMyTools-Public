@@ -70,7 +70,7 @@ jobs:
 
       - name: Push feature branch
         run: |
-          git push origin ${{ env.FEATURE_BRANCH }} --force
+          git push --force --set-upstream origin ${{ env.FEATURE_BRANCH }}
 
       - name: Create pull request
         env:
