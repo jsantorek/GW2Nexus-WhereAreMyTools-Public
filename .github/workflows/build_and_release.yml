@@ -1,12 +1,9 @@
-name: Manual Conan Build & Release
+name: Conan Build & Release
 
 on:
-  workflow_dispatch:
-    inputs:
-      tag:
-        description: "Tag name for the release (e.g. v1.2.3, 1.4.12.912)"
-        required: true
-        type: string
+  push:
+    tags:
+      - 'v*'
 
 env:
   SUBMODULE_PATH: GW2-WhereAreMyTools
@@ -41,7 +38,7 @@ jobs:
           --profile:build default
           --conf tools.cmake.cmaketoolchain:extra_variables*='{
           "ADDON_UPDATE_LINK": "${{ github.server_url }}/${{ github.repository }}",
-          "ADDON_VERSION": "${{ github.event.inputs.tag }}"
+          "ADDON_VERSION": "${{ github.ref_name}}"
           }'
 
       - name: Draft GitHub Release
@@ -52,7 +49,7 @@ jobs:
           draft: true
           prerelease: false
           fail_on_unmatched_files: true
-          tag_name: ${{ github.event.inputs.tag }}
+          tag_name: ${{ github.ref_name}}
           files: build/**/*.dll
 
       - name: Publish GitHub Release
@@ -63,4 +60,4 @@ jobs:
           make_latest: true
           draft: false
           prerelease: false
-          tag_name: ${{ github.event.inputs.tag }}
+          tag_name: ${{ github.ref_name}}
