@@ -32,7 +32,7 @@ jobs:
           git fetch origin ${{ env.SUBMODULE_BRANCH }}
           current=$(git rev-parse HEAD)
           latest=$(git rev-parse origin/${{ env.SUBMODULE_BRANCH }})
-          [ "$current" != "$latest" ] || exit 1
+          [ "$current" = "$latest" ] || exit 1
           git checkout origin/${{ env.SUBMODULE_BRANCH }}
 
       - name: Configure git
