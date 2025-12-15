@@ -9,7 +9,7 @@ on:
         type: string
 
 env:
-  SOURCE_REPO: "TyrianDeveloperCollective/GW2-WhereAreMyTools"
+  SUBMODULE_PATH: GW2-WhereAreMyTools
   CONAN_HOME: /root/.conan2
 
 jobs:
@@ -19,34 +19,30 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v6
+      - name: Checkout repository with submodules
+        uses: actions/checkout@v6
         with:
-          repository: ${{ env.SOURCE_REPO }}
+          submodule: recursive
           token: ${{ secrets.SOURCE_REPO_TOKEN }}
           ref: main
-          submodules: recursive
+          fetch-depth: 0
 
       - name: Conan install dependencies
         run: >
-          conan install .
+          conan install ${{ env.SUBMODULE_PATH }}
           --build missing
           --profile:host windows-dynamic
           --profile:build default
       
       - name: Conan build addon
         run: >
-          conan build .
+          conan build ${{ env.SUBMODULE_PATH }}
           --profile:host windows-dynamic
           --profile:build default
           --conf tools.cmake.cmaketoolchain:extra_variables*='{
           "ADDON_UPDATE_LINK": "${{ github.server_url }}/${{ github.repository }}",
           "ADDON_VERSION": "${{ github.event.inputs.tag }}"
           }'
-
-      - uses: bcanseco/github-contribution-graph-action@v2
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GIT_EMAIL: github-actions[bot]@users.noreply.github.com
 
       - name: Draft GitHub Release
         uses: softprops/action-gh-release@v2

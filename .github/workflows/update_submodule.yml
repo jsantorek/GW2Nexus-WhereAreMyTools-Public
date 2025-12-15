@@ -1,0 +1,81 @@
+name: Update submodule
+
+on:
+  workflow_dispatch:
+
+env:
+  FEATURE_BRANCH: bot/update-submodule
+  PR_LABEL: automated-submodule-update
+  SUBMODULE_PATH: GW2-WhereAreMyTools
+  SUBMODULE_BRANCH: main
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  update-submodule:
+    runs-on: ubuntu-latest
+
+
+    steps:
+      - name: Checkout repository with submodule
+        uses: actions/checkout@v4
+        with:
+          submodule: recursive
+          fetch-depth: 0
+
+      - name: Update submodule to latest commit
+        working-directory: ${{ env.SUBMODULE_PATH }}
+        run: |
+          set -e
+
+          git fetch origin ${{ env.SUBMODULE_BRANCH }}
+          current=$(git rev-parse HEAD)
+          latest=$(git rev-parse origin/${{ env.SUBMODULE_BRANCH }})
+
+          [ "$current" != "$latest" ] || exit 1
+
+          git checkout origin/${{ env.SUBMODULE_BRANCH }}
+
+      - name: Configure git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Create or reset feature branch
+        run: |
+          git checkout -B ${{ env.FEATURE_BRANCH }}
+
+      - name: Commit changes
+        run: |
+          git commit -m "chore: update submodule to latest"
+
+      - name: Close previous PRs created by this workflow
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh pr list \
+            --label ${{ env.PR_LABEL }} \
+            --state open \
+            --json number \
+            --jq '.[].number' |
+          while read pr; do
+            echo "Closing PR #$pr"
+            gh pr close "$pr" --delete-branch
+          done
+
+      - name: Push feature branch
+        run: |
+          git push origin ${{ env.FEATURE_BRANCH }} --force
+
+      - name: Create pull request
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh pr create \
+            --head ${{ env.FEATURE_BRANCH }} \
+            --base main \
+            --title "automated submodule update" \
+            --body "This PR updates submodule to the latest commit on watched branch." \
+            --label ${{ env.PR_LABEL }}
