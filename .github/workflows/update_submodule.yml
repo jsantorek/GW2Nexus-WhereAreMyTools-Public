@@ -33,20 +33,22 @@ jobs:
           current=$(git rev-parse HEAD)
           latest=$(git rev-parse origin/${{ env.SUBMODULE_BRANCH }})
           [ "$current" = "$latest" ] || exit 1
-          git checkout origin/${{ env.SUBMODULE_BRANCH }}
+          git checkout -B ${{ env.FEATURE_BRANCH }} $latest
+
+      - name: Add changes
+        run: "git status"
 
       - name: Configure git
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-      - name: Create or reset feature branch
-        run: |
-          git checkout -B ${{ env.FEATURE_BRANCH }}
-
       - name: Add changes
         run: |
           git add .
+
+      - name: Add changes
+        run: "git status"
 
       - name: Commit changes
         run: |
