@@ -20,7 +20,7 @@ jobs:
       - name: Checkout repository with submodule
         uses: actions/checkout@v6
         with:
-          submodule: recursive
+          submodules: recursive
           token: ${{ secrets.SOURCE_REPO_TOKEN }}
           ref: main
           fetch-depth: 0
