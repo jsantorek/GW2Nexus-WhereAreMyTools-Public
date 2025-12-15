@@ -28,11 +28,11 @@ jobs:
       - name: Update submodule to latest commit
         working-directory: ${{ env.SUBMODULE_PATH }}
         run: |
-          set -e \
-          git fetch origin ${{ env.SUBMODULE_BRANCH }} \
-          current=$(git rev-parse HEAD) \
-          latest=$(git rev-parse origin/${{ env.SUBMODULE_BRANCH }}) \
-          [ "$current" != "$latest" ] || exit 1 \
+          set -ex
+          git fetch origin ${{ env.SUBMODULE_BRANCH }}
+          current=$(git rev-parse HEAD)
+          latest=$(git rev-parse origin/${{ env.SUBMODULE_BRANCH }})
+          [ "$current" != "$latest" ] || exit 1
           git checkout origin/${{ env.SUBMODULE_BRANCH }}
 
       - name: Configure git
