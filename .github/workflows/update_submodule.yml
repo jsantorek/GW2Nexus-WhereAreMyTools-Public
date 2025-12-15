@@ -41,13 +41,16 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
       - name: Create or reset feature branch
-        run: git checkout -B ${{ env.FEATURE_BRANCH }}
+        run: |
+          git checkout -B ${{ env.FEATURE_BRANCH }}
 
       - name: Add changes
-        run: git add .
+        run: |
+          git add .
 
       - name: Commit changes
-        run: git commit -m "chore: update submodule to latest"
+        run: |
+          git commit -m "chore: update submodule to latest"
 
       - name: Close previous PRs created by this workflow
         env:
