@@ -73,4 +73,4 @@ jobs:
           --base main
           --title "automated submodule update"
           --body "This PR updates submodule to the latest commit on watched branch."
-          --label ${{ env.PR_LABEL }}
+          --label "${{ env.PR_LABEL }}"
