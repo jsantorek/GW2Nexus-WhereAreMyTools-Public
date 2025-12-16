@@ -82,4 +82,10 @@ jobs:
           --base main
           --title "automated submodule update"
           --body "This PR updates submodule to the latest commit on watched branch."
-          --label "${{ env.PR_LABEL }}"
+
+      - name: Add label
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: >
+          gh pr edit "${{ env.FEATURE_BRANCH }}"
+          --add-label "${{ env.PR_LABEL }}"
