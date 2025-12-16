@@ -33,9 +33,9 @@ jobs:
           current=$(git rev-parse HEAD)
           latest=$(git rev-parse origin/${{ env.SUBMODULE_BRANCH }})
           [ "$current" != "$latest" ] || exit 1
-          git checkout -B ${{ env.FEATURE_BRANCH }} $latest
+          git checkout $latest
 
-      - name: Add changes
+      - name: Status 1
         run: "git status"
 
       - name: Configure git
@@ -43,16 +43,14 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-      - name: Add changes
+      - name: Add and commit changes
         run: |
+          git checkout -b ${{ env.FEATURE_BRANCH }}
           git add .
-
-      - name: Add changes
-        run: "git status"
-
-      - name: Commit changes
-        run: |
           git commit -m "chore: update submodule to latest"
+
+      - name: Status 2
+        run: "git status"
 
       - name: Close previous PRs created by this workflow
         env:
