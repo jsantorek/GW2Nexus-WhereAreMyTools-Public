@@ -35,22 +35,6 @@ jobs:
           [ "$current" != "$latest" ] || exit 1
           git checkout $latest
 
-      - name: Status 1
-        run: "git status"
-
-      - name: Configure git
-        run: |
-          git config user.name "${GITHUB_ACTOR}"
-          git config user.email "${GITHUB_ACTOR_ID}+${GITHUB_ACTOR}@users.noreply.github.com"
-
-      - name: Add and commit changes
-        run: |
-          git checkout -b ${{ env.FEATURE_BRANCH }}
-          git add .
-          git commit -m "chore: update submodule to latest"
-
-      - name: Status 2
-        run: "git status"
 
       - name: Close previous PRs created by this workflow
         env:
@@ -66,8 +50,16 @@ jobs:
             gh pr close "$pr" --delete-branch
           done
 
-      - name: Push feature branch
+      - name: Configure git
         run: |
+          git config user.name "${GITHUB_ACTOR}"
+          git config user.email "${GITHUB_ACTOR_ID}+${GITHUB_ACTOR}@users.noreply.github.com"
+
+      - name: Add, commit and push changes
+        run: |
+          git checkout -b ${{ env.FEATURE_BRANCH }}
+          git add .
+          git commit -m "chore: update submodule to latest"
           git push --force --set-upstream origin ${{ env.FEATURE_BRANCH }}
 
       - name: Create pull request
