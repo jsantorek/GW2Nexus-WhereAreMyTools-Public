@@ -1,9 +1,11 @@
 name: Conan Build & Release
 
 on:
-  push:
-    tags:
-      - 'v*'
+  release:
+    types: [created]
+
+permissions:
+  contents: write
 
 env:
   SUBMODULE_PATH: GW2-WhereAreMyTools
@@ -11,10 +13,9 @@ env:
 
 jobs:
   build:
+    if: github.event.release.draft == true && startsWith(github.event.release.tag_name, 'v')
     runs-on: ubuntu-latest
     container: ghcr.io/jsantorek/gw2-addon-builder:latest
-    permissions:
-      contents: write
     steps:
       - name: Checkout repository with submodules
         uses: actions/checkout@v6
@@ -41,23 +42,21 @@ jobs:
           "ADDON_VERSION": "${{ github.ref_name}}"
           }'
 
-      - name: Draft GitHub Release
+      - name: Upload binaries to the release
         uses: softprops/action-gh-release@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          draft: true
-          prerelease: false
-          fail_on_unmatched_files: true
-          tag_name: ${{ github.ref_name}}
+          release_id: ${{ github.event.release.id }}
           files: build/**/*.dll
+          fail_on_unmatched_files: true
 
-      - name: Publish GitHub Release
+      - name: Publish the release
         uses: softprops/action-gh-release@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           make_latest: true
           draft: false
-          prerelease: false
+          prerelease: ${{ contains(github.event.release.tag_name, '-rc') }}
           tag_name: ${{ github.ref_name}}
