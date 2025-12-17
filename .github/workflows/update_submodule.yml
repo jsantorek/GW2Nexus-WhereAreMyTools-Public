@@ -16,6 +16,7 @@ on:
 env:
   SUBMODULE_PATH: GW2-WhereAreMyTools
   SUBMODULE_BRANCH: main
+  CONAN_HOME: /root/.conan2
 
 permissions:
   contents: write
@@ -44,13 +45,7 @@ jobs:
       - name: Add and commit changes
         run: |
           set -ex
-          echo "$PWD"
-          ls -la
-          ls -la .git
-          touch .git/test && rm .git/test
           git config --global --add safe.directory "$PWD"
-          git config --global --get-all safe.directory
-          git status --verbose
           git config --global user.name "${GITHUB_ACTOR}"
           git config --global user.email "${GITHUB_ACTOR_ID}+${GITHUB_ACTOR}@users.noreply.github.com"
           git add ${{ env.SUBMODULE_PATH }}
