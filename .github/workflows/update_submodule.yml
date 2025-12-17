@@ -71,7 +71,7 @@ jobs:
             exit 0
           fi
 
-          latest=$(git ls-remote --tags --sort='v:refname' https://github.com/jsantorek/GW2Nexus-WhereAreMyTools-Public.git | tail -n 1 | sed 's|.*refs/tags/||')
+          latest=$(git ls-remote --tags --sort='v:refname' ${{ github.server_url }}/${{ github.repository }} | tail -n 1 | sed 's|.*refs/tags/||')
           IFS='.' read -r major minor patch build <<< "${latest#v}"
 
           major=${major:-0}
