@@ -5,7 +5,7 @@ on:
     inputs:
       release-increment:
         type: choice
-        description: Release increment type
+        description: Release increment type ("major", "minor", "patch", "build" or "skip" to not produce new release)
         options: 
         - major
         - minor
@@ -23,6 +23,7 @@ permissions:
 jobs:
   update-submodule:
     runs-on: ubuntu-latest
+    container: ghcr.io/jsantorek/gw2-addon-builder:latest
     steps:
       - name: Checkout repository with submodule
         uses: actions/checkout@v6
