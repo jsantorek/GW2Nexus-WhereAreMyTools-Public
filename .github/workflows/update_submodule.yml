@@ -2,16 +2,23 @@ name: Update submodule
 
 on:
   workflow_dispatch:
+    inputs:
+      release-increment:
+        type: choice
+        description: Release increment type
+        options: 
+        - major
+        - minor
+        - patch
+        - build
+        - skip
 
 env:
-  FEATURE_BRANCH: bot/update-submodule
-  PR_LABEL: automated-submodule-update
   SUBMODULE_PATH: GW2-WhereAreMyTools
   SUBMODULE_BRANCH: main
 
 permissions:
   contents: write
-  pull-requests: write
 
 jobs:
   update-submodule:
@@ -35,46 +42,83 @@ jobs:
           [ "$current" != "$latest" ] || exit 1
           git checkout $latest
 
-
-      - name: Close previous PRs created by this workflow
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Add and commit changes
         run: |
-          gh pr list \
-            --label ${{ env.PR_LABEL }} \
-            --state open \
-            --json number \
-            --jq '.[].number' |
-          while read pr; do
-            echo "Closing PR #$pr"
-            gh pr close "$pr" --delete-branch
-          done
-
-      - name: Configure git
-        run: |
+          set -ex
           git config user.name "${GITHUB_ACTOR}"
           git config user.email "${GITHUB_ACTOR_ID}+${GITHUB_ACTOR}@users.noreply.github.com"
-
-      - name: Add, commit and push changes
-        run: |
-          git checkout -b ${{ env.FEATURE_BRANCH }}
-          git add .
+          git add ${{ env.SUBMODULE_PATH }}
           git commit -m "chore: update submodule to latest"
-          git push --force --set-upstream origin ${{ env.FEATURE_BRANCH }}
 
-      - name: Create pull request
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Conan install dependencies
         run: >
-          gh pr create
-          --head ${{ env.FEATURE_BRANCH }}
-          --base main
-          --title "automated submodule update"
-          --body "This PR updates submodule to the latest commit on watched branch."
+          conan install ${{ env.SUBMODULE_PATH }}
+          --build missing
+          --profile:host windows-dynamic
+          --profile:build default
 
-      - name: Add label
+      - name: Get next semantic version
+        id: semver
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [[ "${{ inputs.release-increment }}" == "skip" ]]; then
+            echo "version=$(git describe --tags --dirty --always)" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          IFS='.' read -r major minor patch build <<< "$(gh release view --json tagName -q .tagName)"
+
+          major=${major:-0}
+          minor=${minor:-0}
+          patch=${patch:-0}
+          build=${build:-0}
+
+          case "${{ inputs.release-increment }}" in
+            major) ((major++, minor=0, patch=0, build=0)) ;;
+            minor) ((minor++, patch=0, build=0)) ;;
+            patch) ((patch++, build=0)) ;;
+            build) ((build++)) ;;
+            *) echo "Unknown release increment" >&2; exit 1 ;;
+          esac
+
+          echo "version=${major}.${minor}.${patch}.${build}" >> "$GITHUB_OUTPUT"
+
+      - name: Conan build addon
         run: >
-          gh pr edit "${{ env.FEATURE_BRANCH }}"
-          --add-label "${{ env.PR_LABEL }}"
+          conan build ${{ env.SUBMODULE_PATH }}
+          --profile:host windows-dynamic
+          --profile:build default
+          --conf tools.cmake.cmaketoolchain:extra_variables*='{
+          "ADDON_UPDATE_LINK": "${{ github.server_url }}/${{ github.repository }}",
+          "ADDON_VERSION": "${{ steps.semver.outputs.version }}"
+          }'
+
+      - name: Push changes
+        run: |
+          git push --force
+
+      - name: Draft GitHub Release
+        if: inputs.release-increment != 'skip'
+        uses: softprops/action-gh-release@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          draft: true
+          fail_on_unmatched_files: true
+          tag_name: ${{ steps.semver.outputs.version }}
+          files: build/**/*.dll
+
+      - name: Publish GitHub Release
+        if: inputs.release-increment != 'skip'
+        uses: softprops/action-gh-release@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          make_latest: true
+          draft: false
+          prerelease: false
+          tag_name: ${{ steps.semver.outputs.version }}
