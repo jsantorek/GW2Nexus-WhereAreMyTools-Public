@@ -48,9 +48,11 @@ jobs:
           ls -la
           ls -la .git
           touch .git/test && rm .git/test
+          git config --global --add safe.directory "$PWD"
+          git config --global --get-all safe.directory
           git status --verbose
-          git config user.name "${GITHUB_ACTOR}"
-          git config user.email "${GITHUB_ACTOR_ID}+${GITHUB_ACTOR}@users.noreply.github.com"
+          git config --global user.name "${GITHUB_ACTOR}"
+          git config --global user.email "${GITHUB_ACTOR_ID}+${GITHUB_ACTOR}@users.noreply.github.com"
           git add ${{ env.SUBMODULE_PATH }}
           git commit -m "chore: update submodule to latest"
 
