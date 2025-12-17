@@ -112,7 +112,7 @@ jobs:
           draft: true
           fail_on_unmatched_files: true
           tag_name: ${{ steps.semver.outputs.version }}
-          files: build/**/*.dll
+          files: ${{ env.SUBMODULE_PATH }}/build/**/*.dll
 
       - name: Publish GitHub Release
         if: inputs.release-increment != 'skip'
