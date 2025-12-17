@@ -64,7 +64,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         shell: bash
         run: |
-          set -euo pipefail
+          set -exuo pipefail
 
           if [[ "${{ inputs.release-increment }}" == "skip" ]]; then
             echo "version=$(git describe --tags --dirty --always)" >> "$GITHUB_OUTPUT"
