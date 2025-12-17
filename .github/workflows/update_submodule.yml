@@ -71,7 +71,8 @@ jobs:
             exit 0
           fi
 
-          IFS='.' read -r major minor patch build <<< "$(gh release view --json tagName -q .tagName)"
+          latest=$(git ls-remote --tags --sort='v:refname' https://github.com/jsantorek/GW2Nexus-WhereAreMyTools-Public.git | tail -n 1 | sed 's|.*refs/tags/||')
+          IFS='.' read -r major minor patch build <<< "${latest#v}"
 
           major=${major:-0}
           minor=${minor:-0}
