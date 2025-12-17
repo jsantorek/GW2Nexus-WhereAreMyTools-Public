@@ -80,10 +80,10 @@ jobs:
           build=${build:-0}
 
           case "${{ inputs.release-increment }}" in
-            major) ((major++, minor=0, patch=0, build=0)) ;;
-            minor) ((minor++, patch=0, build=0)) ;;
-            patch) ((patch++, build=0)) ;;
-            build) ((build++)) ;;
+            major) ((++major, minor=0, patch=0, build=0)) ;;
+            minor) ((++minor, patch=0, build=0)) ;;
+            patch) ((++patch, build=0)) ;;
+            build) ((++build)) ;;
             *) echo "Unknown release increment" >&2; exit 1 ;;
           esac
 
