@@ -46,8 +46,7 @@ jobs:
           set -ex
           echo "$PWD"
           ls -la
-          ls .git/HEAD .git/config
-          cat .git
+          ls -la .git
           touch .git/test && rm .git/test
           git status --verbose
           git config user.name "${GITHUB_ACTOR}"
