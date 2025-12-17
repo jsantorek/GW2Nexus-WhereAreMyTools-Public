@@ -26,7 +26,7 @@ jobs:
     container: ghcr.io/jsantorek/gw2-addon-builder:latest
     steps:
       - name: Checkout repository with submodule
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           submodules: recursive
           token: ${{ secrets.SOURCE_REPO_TOKEN }}
@@ -35,7 +35,6 @@ jobs:
         working-directory: ${{ env.SUBMODULE_PATH }}
         run: |
           set -ex
-          ls -la
           git fetch origin ${{ env.SUBMODULE_BRANCH }}
           current=$(git rev-parse HEAD)
           latest=$(git rev-parse origin/${{ env.SUBMODULE_BRANCH }})
@@ -45,6 +44,12 @@ jobs:
       - name: Add and commit changes
         run: |
           set -ex
+          echo "$PWD"
+          ls -la
+          ls .git/HEAD .git/config
+          cat .git
+          touch .git/test && rm .git/test
+          git status --verbose
           git config user.name "${GITHUB_ACTOR}"
           git config user.email "${GITHUB_ACTOR_ID}+${GITHUB_ACTOR}@users.noreply.github.com"
           git add ${{ env.SUBMODULE_PATH }}
